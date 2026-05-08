@@ -7,9 +7,6 @@ public class Film
     public string? Overview { get; set; }
     public string? PosterPath { get; set; }
     public int TmdbId { get; set; }
-    public int? UserRating { get; set; }
-    public string Status { get; set; } = "Planned";
-    public string? Comment { get; set; }
-    public DateTime AddedAt { get; set; } = DateTime.UtcNow;
+    public DateOnly ReleaseDate { get; set; }
     
 }

@@ -7,12 +7,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Folder Include="Models\DTOs\" />
         <Folder Include="Repositories\Interfaces\" />
         <Folder Include="Services\Interfaces\" />
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.4">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
