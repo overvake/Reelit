@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Reelit.Models.DTOs;
+﻿using Reelit.Models.DTOs;
 using Reelit.Services.Interfaces;
 
 namespace Reelit.Services;
@@ -17,7 +16,6 @@ public class OmdbService : IOmdbService
     }
     public async Task<List<OmdbDto>> SeachFilmsAsync(string filmName)
     {
-        // var result = await _httpClient.GetFromJsonAsync<OmdbDto>();
         var response = await _httpClient.GetAsync($"?s={filmName}&apikey={_config["Omdb:ApiKey"]}");
         if (response.IsSuccessStatusCode)
         {
@@ -28,6 +26,21 @@ public class OmdbService : IOmdbService
         else
         {
             return new List<OmdbDto>();
+        }
+    }
+
+    public async Task<OmdbDto> GetById(string imdbId)
+    {
+        var response = await _httpClient.GetAsync($"?i={imdbId}&apikey={_config["Omdb:ApiKey"]}&plot=full");
+        if (response.IsSuccessStatusCode)
+        {
+            var data = await response.Content.ReadFromJsonAsync<OmdbDto>();
+            if (data == null) return new OmdbDto();
+            return data;
+        }
+        else
+        {
+            return new OmdbDto();
         }
     }
 }

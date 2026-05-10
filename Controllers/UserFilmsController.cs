@@ -22,14 +22,21 @@ public class UserFilmsController : ControllerBase
         _omdb = omdbService;
     }
 
-    [HttpGet]
+    [HttpGet("search")]
     public async Task<ActionResult<List<OmdbDto>>> Search(string film)
     {
         var result = await _omdb.SeachFilmsAsync(film);
         if (result == null) return NotFound();
         return Ok(result);
     }
-    
+
+    [HttpGet("film/{imdbId}")]
+    public async Task<ActionResult<OmdbDto>> GetById(string imdbId)
+    {
+        var result = await _omdb.GetById(imdbId);
+        if (result == null) return NotFound();
+        return Ok(result);
+    }
     // [HttpPost]
     // public async Task<ActionResult<Film>> AddFilm (int tmbdId) {}
     //
