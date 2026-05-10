@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Reelit.Data;
 using Reelit.Models.Entities;
@@ -6,6 +7,7 @@ using Reelit.Models.Entities;
 namespace Reelit.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class FilmsController : ControllerBase
 {

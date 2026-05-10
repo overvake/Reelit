@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Reelit.Data;
+using Reelit.Services;
+using Reelit.Services.Interfaces;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,7 +30,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
-
+builder.Services.AddHttpClient<IOmdbService, OmdbService>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Omdb:BaseUrl"]);
+});
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

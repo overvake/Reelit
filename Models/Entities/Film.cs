@@ -6,6 +6,7 @@ public class Film
     public string Title { get; set; } = string.Empty;
     public string? Overview { get; set; }
     public string? PosterPath { get; set; }
+    public string? Genre { get; set; }
     public int TmdbId { get; set; }
     public DateOnly ReleaseDate { get; set; }
     
