@@ -5,7 +5,7 @@ namespace Reelit.Models.DTOs;
 public class OmdbDto
 {
     [JsonPropertyName("imdbID")]
-    public string imdbID { get; set; }
+    public string imdbId { get; set; }
     [JsonPropertyName("Title")]
     public string Title { get; set; }
     [JsonPropertyName("Plot")]

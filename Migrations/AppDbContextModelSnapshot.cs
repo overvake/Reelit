@@ -30,21 +30,26 @@ namespace Reelit.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Genre")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ImdbId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Overview")
                         .HasColumnType("text");
 
                     b.Property<string>("PosterPath")
                         .HasColumnType("text");
 
-                    b.Property<DateOnly>("ReleaseDate")
-                        .HasColumnType("date");
+                    b.Property<string>("ReleaseDate")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("TmdbId")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 

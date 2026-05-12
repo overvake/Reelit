@@ -32,7 +32,7 @@ public class FilmsController : ControllerBase
         return CreatedAtAction(nameof(GetFilms), new { id = film.Id }, film);
     }
 
-    [HttpDelete]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteFilm(int id)
     {
         var film = await _context.Films.FindAsync(id);
