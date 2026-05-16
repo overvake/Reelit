@@ -40,6 +40,16 @@ public class UserFilmsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("catalog")]
+    public async Task<ActionResult<List<UserFilm>>> GetCatalog()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var films = await _context.UserFilms.Where(x => x.UserId == int.Parse(userId))
+            .Include(x => x.Film)
+            .ToListAsync();
+        return Ok(films);
+    }
+
     [HttpPost("add")]
     public async Task<ActionResult<Film>> AddFilm(string imbdId)
     {
@@ -60,7 +70,9 @@ public class UserFilmsController : ControllerBase
         }
             
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
+        if (await _context.UserFilms.AnyAsync(x => x.UserId == int.Parse(userId) && x.FilmId == film.Id))
+            return Conflict();
+        
         UserFilm userFilm = new();
         userFilm.UserId = int.Parse(userId);
         userFilm.FilmId = film.Id;
@@ -69,13 +81,29 @@ public class UserFilmsController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(film);
     }
+
+    [HttpPut("{id}/rate")]
+    public async Task<ActionResult<int>> RateFilm(int id, int rate)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var film = await _context.UserFilms.FirstOrDefaultAsync(x => x.UserId == int.Parse(userId) && x.FilmId == id);
+        if (film == null) return NotFound();
+        film.UserRating = rate;
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    [HttpPut("{id}/note")]
+    public async Task<ActionResult<string>> NoteFilm(int id, string note)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var film = await _context.UserFilms.FirstOrDefaultAsync(x => x.UserId == int.Parse(userId) && x.FilmId == id);
+        if (film == null) return NotFound();
+        film.Comment = note;
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
     
-    // [HttpPut("{id}/rate")]
-    // public async Task<ActionResult<int>> RateFilm (int rate) {}
-    //
-    // [HttpPut("{id}/note")]
-    // public async Task<ActionResult<string>> NoteFilm (string note) {}
-    //
     [HttpDelete]
     public async Task<IActionResult> DeleteFilm(int id)
     {
