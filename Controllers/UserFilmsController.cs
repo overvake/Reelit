@@ -43,75 +43,107 @@ public class UserFilmsController : ControllerBase
     [HttpGet("catalog")]
     public async Task<ActionResult<List<UserFilm>>> GetCatalog()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var films = await _context.UserFilms.Where(x => x.UserId == int.Parse(userId))
+        var userId = GetUserId();
+        var film = await _context.UserFilms
+            .Where(x => x.UserId == userId)
             .Include(x => x.Film)
             .ToListAsync();
-        return Ok(films);
+        return Ok(film.Select(MapToDto));
     }
 
     [HttpPost("add")]
-    public async Task<ActionResult<Film>> AddFilm(string imbdId)
+    public async Task<ActionResult<Film>> AddFilm([FromQuery] string imbdId)
     {
         Film film = await _context.Films.FirstOrDefaultAsync(f => f.ImdbId == imbdId);
         if (film == null)
         {
             var newFilm = await _omdb.GetById(imbdId);
             if (newFilm == null) return NotFound();
-            film = new Film(); 
-            film.ImdbId = newFilm.imdbId;
-            film.Title = newFilm.Title;
-            film.Genre = newFilm.Genre;
-            film.Overview = newFilm.Plot;
-            film.PosterPath = newFilm.PosterPath;
-            film.ReleaseDate = newFilm.Year;
+            film = new Film
+            {
+                ImdbId = newFilm.imdbId,
+                Title = newFilm.Title,
+                Genre = newFilm.Genre,
+                Overview = newFilm.Plot,
+                PosterPath = newFilm.PosterPath,
+                ReleaseDate = newFilm.Year
+            };
             await _context.Films.AddAsync(film);
             await _context.SaveChangesAsync();
+
         }
             
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (await _context.UserFilms.AnyAsync(x => x.UserId == int.Parse(userId) && x.FilmId == film.Id))
-            return Conflict();
+        var userId = GetUserId();
+        if (await _context.UserFilms.AnyAsync(x => x.UserId == userId && x.FilmId == film.Id))
+            return Conflict(new {message = "Film already in catalog"});
         
-        UserFilm userFilm = new();
-        userFilm.UserId = int.Parse(userId);
-        userFilm.FilmId = film.Id;
+        UserFilm userFilm = new UserFilm
+        {
+            UserId = userId,
+            FilmId = film.Id
+        };
 
         await _context.UserFilms.AddAsync(userFilm);
         await _context.SaveChangesAsync();
-        return Ok(film);
+        
+        return Ok(MapFilmToDto(film));
     }
 
-    [HttpPut("{id}/rate")]
-    public async Task<ActionResult<int>> RateFilm(int id, int rate)
+    [HttpPatch("{id}")]
+    public async Task<ActionResult<int>> UpdateFilm(int id, [FromBody] UpdateUserFilmDto dto)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var film = await _context.UserFilms.FirstOrDefaultAsync(x => x.UserId == int.Parse(userId) && x.FilmId == id);
-        if (film == null) return NotFound();
-        film.UserRating = rate;
-        await _context.SaveChangesAsync();
-        return Ok();
-    }
+        var userId = GetUserId();
+        var userFilm = await _context.UserFilms
+            .FirstOrDefaultAsync(x => x.UserId == userId && x.FilmId == id);
 
-    [HttpPut("{id}/note")]
-    public async Task<ActionResult<string>> NoteFilm(int id, string note)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var film = await _context.UserFilms.FirstOrDefaultAsync(x => x.UserId == int.Parse(userId) && x.FilmId == id);
-        if (film == null) return NotFound();
-        film.Comment = note;
+        if (userFilm == null) return NotFound();
+
+        if (dto.UserRating.HasValue) userFilm.UserRating = dto.UserRating;
+        if (dto.Comment != null) userFilm.Comment = dto.Comment;
+        if (dto.Status != null) userFilm.Status = dto.Status;
+
         await _context.SaveChangesAsync();
-        return Ok();
+        return NoContent();
+
     }
     
     [HttpDelete]
     public async Task<IActionResult> DeleteFilm(int id)
     {
-        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-        var film = await _context.UserFilms.FirstOrDefaultAsync(film => film.Id == id && userId == film.UserId);
+        var userId = GetUserId();
+        var film = await _context.UserFilms
+            .FirstOrDefaultAsync(film => film.Id == id && userId == film.UserId);
+       
         if (film == null) return NotFound();
         _context.UserFilms.Remove(film);
         await _context.SaveChangesAsync();
         return NoContent();
     }
+    
+    
+    private int GetUserId() =>
+        int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    
+    private static UserFilmDto MapToDto(UserFilm uf) => new()
+    {
+        Id = uf.Id,
+        Film = MapFilmToDto(uf.Film),
+        Status = uf.Status,
+        UserRating = uf.UserRating,
+        Comment = uf.Comment,
+        AddedAt = uf.AddedAt
+    };
+
+    private static FilmDto MapFilmToDto(Film film) => new()
+    {
+        Id = film.Id,
+        Title = film.Title,
+        Overview = film.Overview,
+        PosterPath = film.PosterPath,
+        Genre = film.Genre,
+        ImdbId = film.ImdbId,
+        ReleaseDate = film.ReleaseDate
+    };
+
+
 }

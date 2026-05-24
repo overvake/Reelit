@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Reelit.Data;
+using Reelit.Models.DTOs;
 using Reelit.Models.Entities;
 
 namespace Reelit.Controllers;
@@ -21,15 +22,8 @@ public class FilmsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Film>>> GetFilms()
     {
-        return await _context.Films.ToListAsync();
-    }
-
-    [HttpPost]
-    public async Task<ActionResult<Film>> AddFilm(Film film)
-    {
-        _context.Films.Add(film);
-        await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetFilms), new { id = film.Id }, film);
+        var films = await _context.Films.ToListAsync();
+        return Ok(films.Select(MapToDto));
     }
 
     [HttpDelete("{id}")]
@@ -41,4 +35,15 @@ public class FilmsController : ControllerBase
         await _context.SaveChangesAsync();
         return NoContent();
     }
+    
+    private static FilmDto MapToDto(Film film) => new()
+    {
+        Id = film.Id,
+        Title = film.Title,
+        Overview = film.Overview,
+        PosterPath = film.PosterPath,
+        Genre = film.Genre,
+        ImdbId = film.ImdbId,
+        ReleaseDate = film.ReleaseDate
+    };
 }
